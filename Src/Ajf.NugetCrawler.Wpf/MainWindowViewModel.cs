@@ -12,7 +12,7 @@ namespace Ajf.NugetCrawler.Wpf
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         private string _text;
-        private BackgroundWorker _backgroundWorker;
+        private readonly BackgroundWorker _backgroundWorker;
 
         public MainWindowViewModel()
         {
@@ -34,20 +34,20 @@ namespace Ajf.NugetCrawler.Wpf
 
         private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            var findings = new List<Finner>();
+            var nugetReferences = new List<NugetReference>();
             Text = "Looking in c:\\projects" + Environment.NewLine;
-            var enumerateFiles = Directory
+            var packageConfigFiles = Directory
                 .EnumerateFiles(@"c:\projects\", "packages.config", SearchOption.AllDirectories)
                 .ToArray();
 
-            Text += enumerateFiles.Length + "Files" + Environment.NewLine;
+            Text += packageConfigFiles.Length + " Files" + Environment.NewLine;
 
-            foreach (var enumerateFile in enumerateFiles)
+            foreach (var packageConfigFile in packageConfigFiles)
             {
                 var doc = new XmlDocument();
-                doc.Load(enumerateFile);
+                doc.Load(packageConfigFile);
 
-                var path = Path.GetDirectoryName(enumerateFile);
+                var path = Path.GetDirectoryName(packageConfigFile);
 
                 var packagesNode = doc.ChildNodes[1];
                 foreach (XmlNode nugetNode in packagesNode.ChildNodes)
@@ -55,37 +55,39 @@ namespace Ajf.NugetCrawler.Wpf
                     var id = nugetNode.Attributes[0].Value;
                     var version = nugetNode.Attributes[1].Value;
 
-                    if (id.ToLower().Contains("jci")) findings.Add(new Finner(path, id, version));
+                    if (id.ToLower().Contains("jci")) nugetReferences.Add(new NugetReference(path, id, version));
                 }
 
                 Text += "*";
             }
 
-            var queryLastNames =
-                from finner in findings
-                group finner by finner.Id
+            Text +=$"{Environment.NewLine}";
+
+            var idGroups =
+                (from nugetReference in nugetReferences
+                group nugetReference by nugetReference.Id
                 into newGroup
                 orderby newGroup.Key
-                select newGroup;
+                select newGroup).ToArray();
 
-            foreach (var queryLastName in queryLastNames)
+            foreach (var idGroup in idGroups)
             {
-                Text +=
-                    $"{queryLastName.Key} {Environment.NewLine}";
+                Text +=$"{idGroup.Key} {Environment.NewLine}";
 
-                var finnners = queryLastName.ToArray();
-                var queryLastNames1 =
-                    from finner in finnners
-                    group finner by finner.Version
+                var packagesInIdGroup = idGroup.ToArray();
+
+                var packagesGroupedByVersion =
+                    (from nugetReference in packagesInIdGroup
+                    group nugetReference by nugetReference.Version
                     into newGroup
                     orderby newGroup.Key
-                    select newGroup;
+                    select newGroup).ToArray();
 
 
-                var groupings = queryLastNames1.ToArray();
+                var versionGroups = packagesGroupedByVersion.ToArray();
 
-                if (groupings.Length > 1)
-                    foreach (var grouping in groupings)
+                if (versionGroups.Length > 1)
+                    foreach (var grouping in versionGroups)
                     {
                         foreach (var finner in grouping)
                             Text +=
@@ -93,6 +95,9 @@ namespace Ajf.NugetCrawler.Wpf
                         Text += $"{Environment.NewLine}";
                     }
             }
+
+            var lineCount = Text.Split(new string[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries).Length;
+            Text = "Total lines " + lineCount + Environment.NewLine + Text;
         }
 
         [NotifyPropertyChangedInvocator]
@@ -108,17 +113,23 @@ namespace Ajf.NugetCrawler.Wpf
         }
     }
 
-    public class Finner
+    public class NugetReference
     {
-        public Finner(string path, string id, string version)
+        public NugetReference(string path, string id, string version)
         {
             Path = path;
             Id = id;
             Version = version;
+
+            FolderName = Path.Split('\\').Last();
         }
+
+        public string FolderName { get; set; }
 
         public string Path { get; }
         public string Id { get; }
         public string Version { get; }
+
+        public int NumberOfOwnedNugets { get; set; }
     }
 }
