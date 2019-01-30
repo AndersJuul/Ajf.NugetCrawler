@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Ajf.NugetCrawler.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Activated="Window_Activated">
     <Grid>
         <TextBox HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" Text="{Binding Text}"/>
 

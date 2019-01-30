@@ -11,5 +11,10 @@ namespace Ajf.NugetCrawler.Wpf
         {
             InitializeComponent();
         }
+
+        private void Window_Activated(object sender, System.EventArgs e)
+        {
+            (DataContext as MainWindowViewModel).Activated();
+        }
     }
 }
