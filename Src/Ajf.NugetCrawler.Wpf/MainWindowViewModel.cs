@@ -6,12 +6,14 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml;
 using Ajf.NugetCrawler.Wpf.Annotations;
+using System.Windows.Input;
 
 namespace Ajf.NugetCrawler.Wpf
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
         private string _text;
+        private string _projectpath = "c:\\projects";
         private readonly BackgroundWorker _backgroundWorker;
 
         public MainWindowViewModel()
@@ -30,17 +32,52 @@ namespace Ajf.NugetCrawler.Wpf
             }
         }
 
+        public string ProjectPath
+        {
+            get => _projectpath;
+            set
+            {
+                _projectpath = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private ICommand _saveCommand;
+        public ICommand ActivatedCmd
+        {
+            get
+            {
+                if (_saveCommand == null)
+                {
+                    _saveCommand = new RelayCommand(
+                        param => Activated()
+                    );
+                }
+                return _saveCommand;
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void BackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             var nugetReferences = new List<NugetReference>();
-            Text = "Looking in c:\\projects" + Environment.NewLine;
-            var packageConfigFiles = Directory
-                .EnumerateFiles(@"c:\projects\", "packages.config", SearchOption.AllDirectories)
-                .ToArray();
+            Text = "Looking in \"" + ProjectPath + "\"" + Environment.NewLine;
 
-            Text += packageConfigFiles.Length + " Files" + Environment.NewLine;
+            IEnumerable<string> packageConfigFiles = null;
+            try
+            {
+                packageConfigFiles = Directory
+                .EnumerateFiles(ProjectPath, "packages.config", SearchOption.AllDirectories);
+            }
+            catch(Exception ex)
+            {
+                Text += "(" + ex.GetType().Name + ") " + ex.Message + Environment.NewLine;
+                return;
+            }
+
+
+            Text += packageConfigFiles.Count() + " Files" + Environment.NewLine;
 
             foreach (var packageConfigFile in packageConfigFiles)
             {
