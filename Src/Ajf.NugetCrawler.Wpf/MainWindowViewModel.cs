@@ -4,9 +4,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 using System.Xml;
 using Ajf.NugetCrawler.Wpf.Annotations;
-using System.Windows.Input;
 
 namespace Ajf.NugetCrawler.Wpf
 {
@@ -31,6 +31,7 @@ namespace Ajf.NugetCrawler.Wpf
                 OnPropertyChanged();
             }
         }
+
 
         public string ProjectPath
         {
@@ -68,9 +69,9 @@ namespace Ajf.NugetCrawler.Wpf
             try
             {
                 packageConfigFiles = Directory
-                .EnumerateFiles(ProjectPath, "packages.config", SearchOption.AllDirectories);
+                    .EnumerateFiles(ProjectPath, "packages.config", SearchOption.AllDirectories);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Text += "(" + ex.GetType().Name + ") " + ex.Message + Environment.NewLine;
                 return;
@@ -98,27 +99,27 @@ namespace Ajf.NugetCrawler.Wpf
                 Text += "*";
             }
 
-            Text +=$"{Environment.NewLine}";
+            Text += $"{Environment.NewLine}";
 
             var idGroups =
                 (from nugetReference in nugetReferences
-                group nugetReference by nugetReference.Id
+                 group nugetReference by nugetReference.Id
                 into newGroup
-                orderby newGroup.Key
-                select newGroup).ToArray();
+                 orderby newGroup.Key
+                 select newGroup).ToArray();
 
             foreach (var idGroup in idGroups)
             {
-                Text +=$"{idGroup.Key} {Environment.NewLine}";
+                Text += $"{idGroup.Key} {Environment.NewLine}";
 
                 var packagesInIdGroup = idGroup.ToArray();
 
                 var packagesGroupedByVersion =
                     (from nugetReference in packagesInIdGroup
-                    group nugetReference by nugetReference.Version
+                     group nugetReference by nugetReference.Version
                     into newGroup
-                    orderby newGroup.Key
-                    select newGroup).ToArray();
+                     orderby newGroup.Key
+                     select newGroup).ToArray();
 
 
                 var versionGroups = packagesGroupedByVersion.ToArray();
@@ -133,7 +134,7 @@ namespace Ajf.NugetCrawler.Wpf
                     }
             }
 
-            var lineCount = Text.Split(new string[] {Environment.NewLine}, StringSplitOptions.RemoveEmptyEntries).Length;
+            var lineCount = Text.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).Length;
             Text = "Total lines " + lineCount + Environment.NewLine + Text;
         }
 
@@ -145,28 +146,9 @@ namespace Ajf.NugetCrawler.Wpf
 
         public void Activated()
         {
-            if(!_backgroundWorker.IsBusy)
-            _backgroundWorker.RunWorkerAsync();
+            if (!_backgroundWorker.IsBusy)
+                _backgroundWorker.RunWorkerAsync();
         }
     }
 
-    public class NugetReference
-    {
-        public NugetReference(string path, string id, string version)
-        {
-            Path = path;
-            Id = id;
-            Version = version;
-
-            FolderName = Path.Split('\\').Last();
-        }
-
-        public string FolderName { get; set; }
-
-        public string Path { get; }
-        public string Id { get; }
-        public string Version { get; }
-
-        public int NumberOfOwnedNugets { get; set; }
-    }
 }

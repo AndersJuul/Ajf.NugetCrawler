@@ -57,6 +57,10 @@
     </ApplicationDefinition>
     <Compile Include="EventArgs.cs" />
     <Compile Include="EventRaiser.cs" />
+    <Compile Include="NugetReference.cs" />
+    <Compile Include="NugetReferenceList.cs" />
+    <Compile Include="Project.cs" />
+    <Compile Include="ProjectList.cs" />
     <Compile Include="RelayCommand.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
